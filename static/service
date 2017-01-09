@@ -1,0 +1,37 @@
+#!/usr/bin/python
+import sys, os, time, json
+import websocket
+from hosted import CONFIG, NODE
+
+CONFIG.restart_on_update()
+
+def forwarder(game):
+    print >>sys.stderr, "FORWARDER FOR GAME %s" % game
+    ws = websocket.create_connection(
+        url = "ws://%s/pong/socket" % CONFIG['server'],
+        timeout = 20,
+    )
+    ws.send(json.dumps(dict(
+        mode = "viewer",
+        game = game,
+    )))
+    while 1:
+        pkt = json.loads(ws.recv())
+        NODE.send('/pos:%s' % json.dumps(dict(
+            l = pkt['l'],
+            r = pkt['r'],
+            num = pkt['num'],
+        )))
+
+def main():
+    time.sleep(3)
+    SERIAL = os.environ['SERIAL']
+    CONFIG.restart_on_update()
+    for game in CONFIG['games']:
+        if game['serial'] == SERIAL:
+            forwarder(game['game'])
+    time.sleep(10000000)
+
+if __name__ == "__main__":
+    main()
+

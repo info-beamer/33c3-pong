@@ -1,0 +1,31 @@
+{
+    "name": "Pong Tile",
+    "permissions": {
+        "network": "Needs pong data"
+    },
+    "options": [{
+        "title": "game server",
+        "ui_width": 12,
+        "name": "server",
+        "type": "string",
+        "default": "33c3.infobeamer.com"
+    }, {
+        "title": "Games",
+        "name": "games",
+        "type": "list",
+        "itemname": "Game",
+        "items": [{
+            "title": "Serial",
+            "ui_width": 3,
+            "name": "serial",
+            "type": "device",
+            "default": ""
+        }, {
+            "title": "Game",
+            "ui_width": 4,
+            "name": "game",
+            "type": "string",
+            "default": "test"
+        }]
+    }]
+}

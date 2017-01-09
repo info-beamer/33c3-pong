@@ -1,0 +1,27 @@
+<html>
+  <head>
+    <link rel='stylesheet' href='{{url_for('static', filename='bootstrap.min.css')}}'>
+    <link rel='stylesheet' href='{{url_for('static', filename='bootstrap-theme.min.css')}}'>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta content="noarchive,nofollow,noindex" name="robots" />
+    <title>33C3 HALL PONG</title>
+  </head>
+  <body>
+    <div class="container" id='app'>
+      <div class="row">
+        <div class='col-md-12'>
+          <h1>33c3 HALL PONG</h1>
+          <hr/>
+          <p>
+            Select your hall:
+          </p>
+          {% for game in games %}
+            <a href='?game={{game}}' class='btn btn-lg btn-block btn-success'>
+              {{game}}
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

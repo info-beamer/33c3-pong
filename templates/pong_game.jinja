@@ -1,0 +1,150 @@
+<html>
+  <head>
+    <meta name="viewport" content="target-densitydpi=device-dpi">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+      body {
+        margin: 0;
+        overflow: hidden;
+      }
+      #game {
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+        box-shadow: inset 0 0 50px #000;
+      }
+      #l {
+        position: absolute;
+        left: 0px;
+        top: 50%;
+        width: 20px;
+        height: 100px;
+        margin-top: -50px;
+        background-color: #000;
+        z-index: -1;
+      }
+      #r {
+        position: absolute;
+        right: 0px;
+        top: 50%;
+        width: 20px;
+        height: 100px;
+        margin-top: -50px;
+        background-color: #000;
+        z-index: -1;
+      }
+      #help {
+        background-color: rgba(255,255,255,0.9);
+        border: 1px solid black;
+        border-radius: 10px;
+        position: absolute;
+        padding: 20px;
+        left: 20%;
+        right: 20%;
+        bottom: 10%;
+        top: 10%;
+        font-size: 66%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id='game'>
+      <div id='l'></div>
+      <div id='r'></div>
+      <div id='help'>
+          <p>
+              <b>33c3 Hall Pong</b>
+          </p>
+          <p>
+              <u>How to play:</u>
+              <br/>
+              <ol>
+                  <li>Wait for green background. Once green you're connected to the game server.</li>
+                  <li>Red? Try again later. You also can only connect once.</li>
+                  <li>Tap on the left or right side of the screen to move the left/right paddle
+                      to the vertical position of your touch point.</li>
+                  <li>The combined position of all <span id='num'></span> players is averaged...</li>
+                  <li>How long can you keep the ball in the game? Work together with everyone else.</li>
+              </ol>
+          </p>
+      </div>
+    </div>
+    <script>
+        var e = document.getElementById("game");
+        var host = window.location.host;
+        var scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        var ws = new WebSocket(scheme + "://" + host + "/pong/socket");
+        var last_ping;
+
+        var l = 50;
+        var r = 50;
+
+        var l_e = document.getElementById("l");
+        var r_e = document.getElementById("r");
+        var num = document.getElementById("num");
+
+        function send(data) {
+            ws.send(JSON.stringify(data));
+        }
+
+        function update() {
+            l_e.style.top = l + "%";
+            r_e.style.top = r + "%";
+            send({l: l, r: r});
+        }
+
+        function command(x, y) {
+            var w = e.offsetWidth;
+            var h = e.offsetHeight;
+            x = Math.round(100 / w * x);
+            y = Math.round(100 / h * y);
+            if (x < 33) {
+                l = y;
+                update();
+            } else if (x > 66) {
+                r = y;
+                update();
+            }
+        }
+
+        function touch(evt) {
+            var touch0 = evt.touches[0];
+            command(touch0.clientX, touch0.clientY);
+        }
+
+        function click(evt) {
+            command(evt.clientX, evt.clientY);
+        }
+
+        ws.onmessage = function(evt) {
+            last_ping = new Date();
+            var pkt = JSON.parse(evt.data);
+            num.innerHTML = pkt.num;
+        }
+
+        ws.onopen = function(evt) {
+            e.style.backgroundColor = 'rgba(100, 255, 100, 0.4)';
+            e.addEventListener("touchstart", touch, false); 
+            e.addEventListener("click", click, false); 
+            send({"mode": "client", "game": {{game|tojson}}});
+            setInterval(function() {
+                send({"p":1});
+            }, 15000);
+            setInterval(function() {
+                var now = new Date();
+                if (now - last_ping > 30 * 1000) {
+                    e.style.backgroundColor = 'rgba(255, 100, 100, 0.4)';
+                }
+            }, 1000);
+        }
+
+        ws.onerror = function(evt) {
+            e.style.backgroundColor = 'rgba(255, 100, 100, 0.4)';
+        }
+
+        ws.onclose = function(evt) {
+            e.style.backgroundColor = 'rgba(255, 100, 100, 0.4)';
+        }
+    </script>
+  </body>
+</html>
